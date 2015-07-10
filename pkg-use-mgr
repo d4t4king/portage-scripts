@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+
+require 'colorize'
+require 'pp'
+
+packages = Hash.new
+existing = Hash.new
+
+puts "Parsing /etc/portage/package.use....".green
+File.open('/etc/portage/package.use', 'r').each_line do |line|
+	line.chomp!
+
+	next if line =~ /^#/	# We don't care boutn comments at this time.
+	fields = Array.new
+	fields = line.split('/ /')
+
+	if fields[0] =~ /^(?:>=|>|=)?.*?\/(.*?)\-/
+		base_pkg = $1
+		puts base_pkg.to_s.yellow
+		if existing.has_key?(base_pkg)
+			existing[base_pkg] += 1
+			if !packages.has_key?(base_pkg)
+				packages[base_pkg] = Array.new
+			end
+			packages[base_pkg].push(fields[0])
+		else
+			existing[base_pkg] = 1
+		end
+	end
+end
+
+pp existing
+pp packages
